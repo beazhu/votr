@@ -4,6 +4,16 @@ import { Modal, Button } from "react-bootstrap";
 import logo from './logo.svg';
 import './App.css';
 
+
+function Poll (props) {
+  return (
+    <div>
+      {props.index}. <b>{props.poll.title}</b>
+
+    </div>
+  );
+
+}
 class App extends Component {
 
   constructor(props) {
@@ -39,7 +49,8 @@ class App extends Component {
       console.log("curr", updateSaved);
       this.setState({
         savedPolls: updateSaved,
-        currentPoll: {title: "", option1: "", option2: ""}});
+        currentPoll: {title: "", options:[],}});
+      this.closeNewPoll();
 
 
   }
@@ -62,10 +73,12 @@ class App extends Component {
         <div>   
         <button onClick={this.showNewPoll}> Create Poll </button>
         <br/>
-        <button> Confirm </button>
         <div> 
-          {this.state.savedPolls.map((polls) => (
-            <div> {polls.title} </div>
+          {this.state.savedPolls.map((polls,ind) => (
+            <div>  
+            <Poll index={ind+1} title={polls.title} poll={polls}/>
+            </div>
+
             ))}
         </div>
 
