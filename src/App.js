@@ -11,7 +11,7 @@ function Poll (props) {
     <div>
       <h4>{props.index}. {props.poll.title}</h4>
       {props.poll.options.map((option, ind) => (
-        <div> Option {ind+1}. {option} <br/> </div>))} {props.poll.options}
+        <div> Option {ind+1}. {option} <br/> </div>))}
 
     </div>
   );
@@ -33,6 +33,7 @@ class NewPoll extends Component {
      this.handleOptionInput = this.handleOptionInput.bind(this);
      this.showNewPoll = this.showNewPoll.bind(this);
      this.closeNewPoll = this.closeNewPoll.bind(this);
+     this.addOption = this.addOption.bind(this);
      this.savePoll = this.savePoll.bind(this);
   }
 
@@ -42,7 +43,10 @@ class NewPoll extends Component {
   }
 
   closeNewPoll () {
-    this.setState({showNewPoll: false});
+    this.setState({
+      showNewPoll: false,
+      currentPoll: {title: "", options:["",""]}
+    });
   }
 
   handleTitleInput(e) {
@@ -55,6 +59,12 @@ class NewPoll extends Component {
   handleOptionInput(e,index) {
     var poll = this.state.currentPoll;
     poll.options[index] = e.target.value;
+    this.setState({currentPoll: poll});
+  }
+
+  addOption() {
+    var poll = this.state.currentPoll;
+    poll.options.push("");
     this.setState({currentPoll: poll});
   }
 
@@ -91,6 +101,7 @@ class NewPoll extends Component {
            Option {ind+1} <input value={options} onChange={(e) => this.handleOptionInput(e,ind)}/>
             </div>
          ))}
+         <Button onClick={this.addOption}> Add Option </Button>
         </Modal.Body>
 
         <Modal.Footer> 
@@ -154,7 +165,7 @@ class App extends Component {
         <h4>Saved Polls</h4> <br/>
           {this.state.savedPolls.map((polls,ind) => (
             <div>  
-            <Poll index={ind+1} title={polls.title} poll={polls}/>
+            <Poll index={ind+1} poll={polls}/>
             </div>
 
             ))}
