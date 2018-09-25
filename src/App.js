@@ -9,7 +9,9 @@ import firebase from './firebase.js';
 function Poll (props) {
   return (
     <div>
-      {props.index}. <b>{props.poll.title}</b> {props.poll.options}
+      <h4>{props.index}. {props.poll.title}</h4>
+      {props.poll.options.map((option, ind) => (
+        <div> Option {ind+1}. {option} <br/> </div>))} {props.poll.options}
 
     </div>
   );
@@ -106,16 +108,10 @@ class App extends Component {
     super(props);
 
     this.state = {
-      showNewPoll: false,
       savedPolls: [],
-      currentPoll: {title: "", options: ["",""] },
     };
 
-    this.showNewPoll = this.showNewPoll.bind(this);
-    this.closeNewPoll = this.closeNewPoll.bind(this);
-    this.savePoll = this.savePoll.bind(this);
-    this.handleTitleInput = this.handleTitleInput.bind(this);
-    this.handleOptionInput = this.handleOptionInput.bind(this);
+
 
   }
 
@@ -139,46 +135,7 @@ class App extends Component {
 
   }
 
-  showNewPoll() {
-    this.setState({showNewPoll: true});
 
-  }
-
-  closeNewPoll () {
-    this.setState({showNewPoll: false});
-  }
-
-  savePoll() {
-
-      const pollsRef = firebase.database().ref('polls');
-      const item = {
-        title: this.state.currentPoll.title,
-        options: this.state.currentPoll.options
-      }
-      pollsRef.push(item);
-
-      this.setState({
-        currentPoll: {title: "", options:["",""]}
-      });
-
-
-      this.closeNewPoll();
-
-
-  }
-
-  handleTitleInput(e) {
-    console.log(this.state.currentPoll);
-    var poll = this.state.currentPoll;
-    poll.title = e.target.value;
-    this.setState({currentPoll: poll});
-  }
-
-  handleOptionInput(e) {
-    var poll = this.state.currentPoll;
-   // poll.options.push(e.target.value);
-    this.setState({currentPoll: poll});
-  }
   render() {
     return (
       <div className="App">
@@ -189,7 +146,7 @@ class App extends Component {
         <br/>
         <div>   
         <div class="newPoll-container">
-            <NewPoll show={this.state.showNewPoll} savePoll={this.savePoll}/>
+            <NewPoll />
 
               </div>
         <br/>
