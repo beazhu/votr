@@ -6,17 +6,82 @@ import './App.css';
 import firebase from './firebase.js';
 
 
-function Poll (props) {
-  return (
-    <div>
-      <h4>{props.index}. {props.poll.title}</h4>
-      {props.poll.options.map((option, ind) => (
-        <div> Option {ind+1}. {option} <br/> </div>))}
+class Poll extends Component {
 
-    </div>
-  );
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      showVoting: false,
+      selectedOption: -1
+    }
+
+    this.showVoting = this.showVoting.bind(this);
+    this.closeVoting = this.closeVoting.bind(this);
+    this.submitVote = this.submitVote.bind(this);
+    this.handleOptionChange = this.handleOptionChange.bind(this);
+  }
+
+  showVoting() {
+    this.setState({showVoting: true});
+  }
+
+  closeVoting() {
+    this.setState({showVoting: false});
+  }
+
+  handleOptionChange(e) {
+    this.setState({selectedOption: e.target.value});
+  }
+
+  submitVote() { // redo data structure
+
+
+         const pollsRef = firebase.database().ref('polls');
+      // const item = {
+      //   title: this.state.currentPoll.title,
+      //   options: this.state.currentPoll.options
+      // }
+      // pollsRef.push(item);
+
+      // this.setState({
+      //   currentPoll: {title: "", options:["",""]}
+      // });
+  }
+
+  render() {
+    return (
+      <div>
+        <h4 onClick={this.showVoting}>{this.props.index}. {this.props.poll.title}</h4>
+        
+
+        <Modal show={this.state.showVoting} onHide={this.closeVoting} bsSize="lg">
+          <Modal.Header closeButton>
+          <Modal.Title> New Poll </Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+          <form>
+          {this.props.poll.options.map((option, ind) => (
+            <div> Option {ind+1}. {option} <input type="radio" name="vote" value={ind} onChange={this.handleOptionChange}/><br/> </div>))}
+          </form>
+          </Modal.Body>
+
+          <Modal.Footer> 
+            <Button onClick={this.submitVote}>Submit</Button>
+          </Modal.Footer>
+        </Modal>
+
+
+
+
+      </div>
+    );
+  }
+
 
 }
+
+
 
 class NewPoll extends Component {
 
@@ -25,7 +90,7 @@ class NewPoll extends Component {
 
      this.state = {
        showNewPoll : false,
-       currentPoll: {title: "", options: ["",""] },
+       currentPoll: {title: "", options:[{option:"", numVotes: 0},{option:"", numVotes: 0}] },
 
      }
 
@@ -45,7 +110,7 @@ class NewPoll extends Component {
   closeNewPoll () {
     this.setState({
       showNewPoll: false,
-      currentPoll: {title: "", options:["",""]}
+      currentPoll: {title: "", options:[{option:"", numVotes: 0},{option:"", numVotes: 0}]}
     });
   }
 
@@ -78,7 +143,7 @@ class NewPoll extends Component {
       pollsRef.push(item);
 
       this.setState({
-        currentPoll: {title: "", options:["",""]}
+        currentPoll: {title: "", options:[{option:"", numVotes: 0},{option:"", numVotes: 0}]}
       });
 
 
@@ -151,7 +216,6 @@ class App extends Component {
     return (
       <div className="App">
         <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
           <h1 className="App-title">Votr: for voting </h1>
         </header>
         <br/>
