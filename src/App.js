@@ -32,21 +32,20 @@ class Poll extends Component {
 
   handleOptionChange(e) {
     this.setState({selectedOption: e.target.value});
+    //gets the index
   }
 
   submitVote() { // redo data structure
 
+      var title = this.props.poll.title;
+      var selected = this.state.selectedOption;
+      var numVotes = this.props.poll.options[selected].numVotes + 1;
 
-         const pollsRef = firebase.database().ref('polls');
-      // const item = {
-      //   title: this.state.currentPoll.title,
-      //   options: this.state.currentPoll.options
-      // }
-      // pollsRef.push(item);
+      
+      const pollsRef = firebase.database().ref('polls').child(title).child('options').child(selected);
+      pollsRef.update({numVotes: numVotes});
 
-      // this.setState({
-      //   currentPoll: {title: "", options:["",""]}
-      // });
+     this.closeVoting();
   }
 
   render() {
@@ -57,12 +56,12 @@ class Poll extends Component {
 
         <Modal show={this.state.showVoting} onHide={this.closeVoting} bsSize="lg">
           <Modal.Header closeButton>
-          <Modal.Title> New Poll </Modal.Title>
+          <Modal.Title> {this.props.poll.title} </Modal.Title>
           </Modal.Header>
           <Modal.Body>
           <form>
           {this.props.poll.options.map((option, ind) => (
-            <div> Option {ind+1}. {option} <input type="radio" name="vote" value={ind} onChange={this.handleOptionChange}/><br/> </div>))}
+            <div> Option {ind+1}. {option.option}  <input type="radio" name="vote" value={ind} onChange={this.handleOptionChange}/><br/> {option.numVotes} vote(s)</div>))}
           </form>
           </Modal.Body>
 
@@ -123,7 +122,7 @@ class NewPoll extends Component {
 
   handleOptionInput(e,index) {
     var poll = this.state.currentPoll;
-    poll.options[index] = e.target.value;
+    poll.options[index].option = e.target.value;
     this.setState({currentPoll: poll});
   }
 
@@ -134,13 +133,13 @@ class NewPoll extends Component {
   }
 
   savePoll() {
-
-      const pollsRef = firebase.database().ref('polls');
+      console.log("ops", this.state.currentPoll.options)
+      const pollsRef = firebase.database().ref('polls').child(this.state.currentPoll.title);
       const item = {
         title: this.state.currentPoll.title,
         options: this.state.currentPoll.options
       }
-      pollsRef.push(item);
+      pollsRef.set(item);
 
       this.setState({
         currentPoll: {title: "", options:[{option:"", numVotes: 0},{option:"", numVotes: 0}]}
@@ -163,7 +162,7 @@ class NewPoll extends Component {
          Title <input onChange={this.handleTitleInput} /> <br/>
          {this.state.currentPoll.options.map((options, ind) => (
            <div>
-           Option {ind+1} <input value={options} onChange={(e) => this.handleOptionInput(e,ind)}/>
+           Option {ind+1} <input value={options.option} onChange={(e) => this.handleOptionInput(e,ind)}/>
             </div>
          ))}
          <Button onClick={this.addOption}> Add Option </Button>
