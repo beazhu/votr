@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import { Modal, Button } from "react-bootstrap";
 
-import logo from './logo.svg';
 import './App.css';
 import firebase from './firebase.js';
 
@@ -20,6 +19,8 @@ class Poll extends Component {
     this.closeVoting = this.closeVoting.bind(this);
     this.submitVote = this.submitVote.bind(this);
     this.handleOptionChange = this.handleOptionChange.bind(this);
+    this.mouseOver = this.mouseOver.bind(this);
+    this.mouseOut = this.mouseOut.bind(this);
   }
 
   showVoting() {
@@ -27,7 +28,7 @@ class Poll extends Component {
   }
 
   closeVoting() {
-    this.setState({showVoting: false});
+    this.setState({showVoting: false, selectedOption:-1});
   }
 
   handleOptionChange(e) {
@@ -35,25 +36,46 @@ class Poll extends Component {
     //gets the index
   }
 
-  submitVote() { // redo data structure
-
+  submitVote() { 
       var title = this.props.poll.title;
-      var selected = this.state.selectedOption;
-      var numVotes = this.props.poll.options[selected].numVotes + 1;
 
+
+      if (this.state.selectedOption === -1)
+      {
+        alert("Please select an option");
+      }
+      else if(localStorage.getItem(title))
+      {
+        alert("You've already voted for this!");
+        this.closeVoting();
+
+      }
+      else {
+         var selected = this.state.selectedOption;
+         var numVotes = this.props.poll.options[selected].numVotes + 1;
+
+         const pollsRef = firebase.database().ref('polls').child(title).child('options').child(selected);
+         pollsRef.update({numVotes: numVotes});
+         localStorage.setItem(title, true);
+        this.closeVoting();
+      }
       
-      const pollsRef = firebase.database().ref('polls').child(title).child('options').child(selected);
-      pollsRef.update({numVotes: numVotes});
-
-     this.closeVoting();
   }
+
+  mouseOver() {
+  document.getElementById(this.props.poll.title).style.color = "gray";
+}
+  mouseOut() {
+  document.getElementById(this.props.poll.title).style.color = "black";
+
+}
 
   render() {
     return (
       <div>
-        <h4 onClick={this.showVoting}>{this.props.index}. {this.props.poll.title}</h4>
+        <h4 id={this.props.poll.title} onClick={this.showVoting} onMouseOver={this.mouseOver} onMouseOut={this.mouseOut}>
+        {this.props.index}. {this.props.poll.title}</h4>
         
-
         <Modal show={this.state.showVoting} onHide={this.closeVoting} bsSize="lg">
           <Modal.Header closeButton>
           <Modal.Title> {this.props.poll.title} </Modal.Title>
@@ -61,17 +83,13 @@ class Poll extends Component {
           <Modal.Body>
           <form>
           {this.props.poll.options.map((option, ind) => (
-            <div> Option {ind+1}. {option.option}  <input type="radio" name="vote" value={ind} onChange={this.handleOptionChange}/><br/> {option.numVotes} vote(s)</div>))}
+            <div> Option {ind+1}. {option.option}  <input type="radio" name="vote" value={ind} onChange={this.handleOptionChange}/> <br/></div>))}
           </form>
           </Modal.Body>
-
           <Modal.Footer> 
-            <Button onClick={this.submitVote}>Submit</Button>
+            <Button onClick={this.submitVote}>Submit Vote</Button>
           </Modal.Footer>
         </Modal>
-
-
-
 
       </div>
     );
@@ -128,7 +146,7 @@ class NewPoll extends Component {
 
   addOption() {
     var poll = this.state.currentPoll;
-    poll.options.push("");
+    poll.options.push({option:"", numVotes: 0});
     this.setState({currentPoll: poll});
   }
 
@@ -153,19 +171,20 @@ class NewPoll extends Component {
   render() {
     return (
       <div>
+
       <button onClick={this.showNewPoll}> Create Poll </button>
       <Modal show={this.state.showNewPoll} onHide={this.closeNewPoll} bsSize="lg">
         <Modal.Header closeButton>
         <Modal.Title> New Poll </Modal.Title>
         </Modal.Header>
         <Modal.Body>
-         Title <input onChange={this.handleTitleInput} /> <br/>
+         Title <br/><input onChange={this.handleTitleInput} /> <br/>
          {this.state.currentPoll.options.map((options, ind) => (
            <div>
-           Option {ind+1} <input value={options.option} onChange={(e) => this.handleOptionInput(e,ind)}/>
+           Option {ind+1}<br/> <input value={options.option} onChange={(e) => this.handleOptionInput(e,ind)}/>
             </div>
          ))}
-         <Button onClick={this.addOption}> Add Option </Button>
+         <br/><Button onClick={this.addOption}> Add Option </Button>
         </Modal.Body>
 
         <Modal.Footer> 
@@ -177,6 +196,49 @@ class NewPoll extends Component {
       );
   }
 }
+
+class SignUp extends Component {
+
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      showSignUp: false,
+
+    }
+
+    this.showSignUp = this.showSignUp.bind(this);
+    this.closeSignUp = this.closeSignUp.bind(this);
+  }
+
+  showSignUp() {
+  this.setState({showSignUp: true});
+}
+  closeSignUp() {
+  this.setState({showSignUp: false});
+}
+
+  render() {
+    return (
+      <div>
+          <button className="sign-up-button" onClick={this.showSignUp}> Sign Up to make Polls </button><br/>
+          <Modal show={this.state.showSignUp} onHide={this.closeSignUp} bsSize="lg">
+            <Modal.Header closeButton>
+            <Modal.Title> SignUp </Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+            Username<br/><input/> <br/>
+            Password<br/><input/>
+            </Modal.Body>
+
+            <Modal.Footer> 
+              <Button onClick={this.closeSignUp}>Submit</Button>
+            </Modal.Footer>
+          </Modal>
+      </div>
+      );
+}
+}
 class App extends Component {
 
   constructor(props) {
@@ -185,9 +247,6 @@ class App extends Component {
     this.state = {
       savedPolls: [],
     };
-
-
-
   }
 
   componentDidMount() {
@@ -206,8 +265,6 @@ class App extends Component {
         savedPolls: newState
       });
     })
-
-
   }
 
 
@@ -216,6 +273,7 @@ class App extends Component {
       <div className="App">
         <header className="App-header">
           <h1 className="App-title">Votr: for voting </h1>
+          <SignUp />
         </header>
         <br/>
         <div>   
@@ -233,11 +291,7 @@ class App extends Component {
 
             ))}
         </div>
-
-
- 
-
-        
+   
         </div>
       </div>
     );
