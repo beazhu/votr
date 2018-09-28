@@ -204,11 +204,16 @@ class SignUp extends Component {
 
     this.state = {
       showSignUp: false,
+      user: "",
+      pass: "",
 
     }
 
     this.showSignUp = this.showSignUp.bind(this);
     this.closeSignUp = this.closeSignUp.bind(this);
+    this.submitSignUp = this.submitSignUp.bind(this);
+    this.handleUserChange = this.handleUserChange.bind(this);
+    this.handlePassChange = this.handlePassChange.bind(this);
   }
 
   showSignUp() {
@@ -218,27 +223,134 @@ class SignUp extends Component {
   this.setState({showSignUp: false});
 }
 
+  handleUserChange(e) {
+  this.setState({user: e.target.value});
+}
+  handlePassChange(e) {
+  this.setState({pass: e.target.value});
+}
+  submitSignUp() {
+  localStorage.setItem('user', this.state.user)
+  // put into database
+  var userRef = firebase.database().ref('users').child(this.state.user);
+  const newUser = {
+    user: this.state.user,
+    pass: this.state.pass
+  }
+  userRef.set(newUser);
+  this.setState({
+      user: "",
+      pass: ""});
+
+
+  this.closeSignUp();
+}
+
   render() {
     return (
       <div>
           <button className="sign-up-button" onClick={this.showSignUp}> Sign Up to make Polls </button><br/>
           <Modal show={this.state.showSignUp} onHide={this.closeSignUp} bsSize="lg">
             <Modal.Header closeButton>
-            <Modal.Title> SignUp </Modal.Title>
+            <Modal.Title> Sign Up </Modal.Title>
             </Modal.Header>
             <Modal.Body>
-            Username<br/><input/> <br/>
-            Password<br/><input/>
+            Username<br/><input onChange={this.handleUserChange}/> <br/>
+            Password<br/><input onChange={this.handlePassChange}/>
             </Modal.Body>
 
             <Modal.Footer> 
-              <Button onClick={this.closeSignUp}>Submit</Button>
+              <Button onClick={this.submitSignUp}>Submit</Button>
             </Modal.Footer>
           </Modal>
       </div>
       );
 }
 }
+
+class SignIn extends Component {
+
+  constructor(props) {
+  super(props);
+  this.state = {
+    showSignIn: false,
+    user: "",
+    pass: "",
+  }
+  this.showSignIn = this.showSignIn.bind(this);
+  this.closeSignIn = this.closeSignIn.bind(this);
+  this.handleUserChange = this.handleUserChange.bind(this);
+  this.handlePassChange = this.handlePassChange.bind(this);
+  this.submitSignIn = this.submitSignIn.bind(this);
+}
+
+  showSignIn() {
+  this.setState({showSignIn: true});
+}
+  closeSignIn() {
+  this.setState({showSignIn: false});
+}
+  handleUserChange(e) {
+  this.setState({user: e.target.value});
+}
+  handlePassChange(e) {
+  this.setState({pass: e.target.value});
+}
+
+  submitSignIn() {
+
+  var userRef = firebase.database().ref('users');
+  userRef.orderByChild('user').equalTo(this.state.user)
+    .once("value", snapshot => {
+      if(snapshot.exists()) {
+        userRef.orderByChild('pass').equalTo(this.state.pass)
+        .once("value",snapshot => {
+          if (snapshot.exists()) {
+            localStorage.setItem('user', this.state.user);
+            this.closeSignIn();
+          }
+          else {
+            alert("Wrong user/pass combo");
+          }
+        })
+      }
+      else {
+        alert("Wrong user/pass combo");
+
+      }
+
+    })
+  
+ 
+  console.log("signed in",localStorage.getItem('user'));
+}
+
+  render() {
+    return (
+      <div>
+        <button onClick={this.showSignIn}> Sign In </button>
+        <Modal show={this.state.showSignIn} onHide={this.closeSignIn} bsSize="lg">
+          <Modal.Header closeButton>
+          <Modal.Title> Sign In </Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+          Username<br/><input onChange={this.handleUserChange}/> <br/>
+          Password<br/><input onChange={this.handlePassChange}/>
+          </Modal.Body>
+
+          <Modal.Footer> 
+            <Button onClick={this.submitSignIn}>Submit</Button>
+          </Modal.Footer>
+        </Modal>
+      </div>
+      );
+}
+}
+
+function SignOut(props) {
+  return (<button onClick={props.signOut}> Sign Out </button>);
+}
+
 class App extends Component {
 
   constructor(props) {
@@ -247,6 +359,7 @@ class App extends Component {
     this.state = {
       savedPolls: [],
     };
+    this.signOut = this.signOut.bind(this);
   }
 
   componentDidMount() {
@@ -267,6 +380,10 @@ class App extends Component {
     })
   }
 
+  signOut() {
+    localStorage.removeItem('user');
+}
+
 
   render() {
     return (
@@ -274,6 +391,8 @@ class App extends Component {
         <header className="App-header">
           <h1 className="App-title">Votr: for voting </h1>
           <SignUp />
+          <SignIn />
+          <SignOut signOut={this.signOut}/>
         </header>
         <br/>
         <div>   
