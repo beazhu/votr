@@ -308,6 +308,8 @@ class SignIn extends Component {
           if (snapshot.exists()) {
             localStorage.setItem('user', this.state.user);
             this.closeSignIn();
+            window.location.reload();
+
           }
           else {
             alert("Wrong user/pass combo");
@@ -348,7 +350,13 @@ class SignIn extends Component {
 }
 
 function SignOut(props) {
-  return (<button onClick={props.signOut}> Sign Out </button>);
+  if(localStorage.getItem('user') !== null)
+  {
+    return (<button onClick={props.signOut}> Sign Out </button>);
+    window.location.reload();
+
+  }
+  return null;
 }
 
 class App extends Component {
