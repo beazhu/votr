@@ -84,7 +84,7 @@ class Poll extends Component {
           <Modal.Body>
           <form>
           {this.props.poll.options.map((option, ind) => (
-            <div key={option.option}> Option {ind+1}. {option.option}  <input type="radio" name="vote" 
+            <div> Option {ind+1}. {option.option}  <input type="radio" name="vote" 
             value={ind} 
             onChange={this.handleOptionChange}/> <br/>
             <Results isUser={this.props.isUser} option={option} />
@@ -194,7 +194,7 @@ class NewPoll extends Component {
         <Modal.Body>
          Title <br/><input onChange={this.handleTitleInput} /> <br/>
          {this.state.currentPoll.options.map((options, ind) => (
-           <div key={options.option}>
+           <div >
            Option {ind+1}<br/> <input value={options.option} onChange={(e) => this.handleOptionInput(e,ind)}/>
             </div>
          ))}
@@ -452,7 +452,7 @@ class App extends Component {
         <div className="saved-polls">             
         <h4>Open Polls</h4> <br/>
           {this.state.savedPolls.map((polls,ind) => (
-            <div key={polls.title}>  
+            <div>  
             <Poll index={ind+1} poll={polls} isUser={false}/>
             </div>
 
@@ -461,7 +461,7 @@ class App extends Component {
          <div className="user-polls">
          <h4>Your Polls</h4> <br/> 
          {this.state.yourPolls.map((polls,ind) => (
-           <div key={polls.title}>  
+           <div >  
            <Poll index={ind+1} poll={polls} isUser={true}/>
            </div>
 
