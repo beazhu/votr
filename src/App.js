@@ -62,6 +62,7 @@ class Poll extends Component {
       
   }
 
+//doesnt work on your polls
   mouseOver() {
   document.getElementById(this.props.poll.title).style.color = "gray";
 }
@@ -78,12 +79,18 @@ class Poll extends Component {
         
         <Modal show={this.state.showVoting} onHide={this.closeVoting} bsSize="lg">
           <Modal.Header closeButton>
-          <Modal.Title> {this.props.poll.title} </Modal.Title>
+          <Modal.Title> {this.props.poll.title} - {this.props.poll.user}</Modal.Title>
           </Modal.Header>
           <Modal.Body>
           <form>
           {this.props.poll.options.map((option, ind) => (
-            <div> Option {ind+1}. {option.option}  <input type="radio" name="vote" value={ind} onChange={this.handleOptionChange}/> <br/></div>))}
+            <div> Option {ind+1}. {option.option}  <input type="radio" name="vote" 
+            value={ind} 
+            onChange={this.handleOptionChange}/> <br/>
+            <Results isUser={this.props.isUser} option={option} />
+            </div>
+            ))}
+          
           </form>
           </Modal.Body>
           <Modal.Footer> 
@@ -98,7 +105,32 @@ class Poll extends Component {
 
 }
 
+function Results (props) {
 
+  if (props.isUser) {
+    return (<div> {props.option.numVotes}</div>);
+  }
+  return null;
+}
+
+// class Results extends Component {
+
+//   constructor(props) {
+//   super(props);
+
+//   this.state = {
+//     show: false,
+//   }
+
+//   render() {
+//     return (
+
+//       )
+//   }
+// }
+
+
+// }
 
 class NewPoll extends Component {
 
@@ -107,7 +139,7 @@ class NewPoll extends Component {
 
      this.state = {
        showNewPoll : false,
-       currentPoll: {title: "", options:[{option:"", numVotes: 0},{option:"", numVotes: 0}] },
+       currentPoll: {title: "", user: "", options:[{option:"", numVotes: 0},{option:"", numVotes: 0}] },
 
      }
 
@@ -127,7 +159,7 @@ class NewPoll extends Component {
   closeNewPoll () {
     this.setState({
       showNewPoll: false,
-      currentPoll: {title: "", options:[{option:"", numVotes: 0},{option:"", numVotes: 0}]}
+      currentPoll: {title: "", user: "", options:[{option:"", numVotes: 0},{option:"", numVotes: 0}]}
     });
   }
 
@@ -155,12 +187,13 @@ class NewPoll extends Component {
       const pollsRef = firebase.database().ref('polls').child(this.state.currentPoll.title);
       const item = {
         title: this.state.currentPoll.title,
+        user: localStorage.getItem('user'),
         options: this.state.currentPoll.options
       }
       pollsRef.set(item);
 
       this.setState({
-        currentPoll: {title: "", options:[{option:"", numVotes: 0},{option:"", numVotes: 0}]}
+        currentPoll: {title: "", user: "", options:[{option:"", numVotes: 0},{option:"", numVotes: 0}]}
       });
 
 
@@ -249,7 +282,7 @@ class SignUp extends Component {
   render() {
     return (
       <div>
-          <button className="sign-up-button" onClick={this.showSignUp}> Sign Up to make Polls </button><br/>
+          <button class="login-button" onClick={this.showSignUp}> Sign Up to make Polls </button><br/>
           <Modal show={this.state.showSignUp} onHide={this.closeSignUp} bsSize="lg">
             <Modal.Header closeButton>
             <Modal.Title> Sign Up </Modal.Title>
@@ -326,11 +359,11 @@ class SignIn extends Component {
  
   console.log("signed in",localStorage.getItem('user'));
 }
-
+//check if signed in to not render sign in/up buttons
   render() {
     return (
       <div>
-        <button onClick={this.showSignIn}> Sign In </button>
+        <button class="login-button" onClick={this.showSignIn}> Sign In </button>
         <Modal show={this.state.showSignIn} onHide={this.closeSignIn} bsSize="lg">
           <Modal.Header closeButton>
           <Modal.Title> Sign In </Modal.Title>
@@ -352,8 +385,7 @@ class SignIn extends Component {
 function SignOut(props) {
   if(localStorage.getItem('user') !== null)
   {
-    return (<button onClick={props.signOut}> Sign Out </button>);
-    window.location.reload();
+    return (<button class="login-button" onClick={props.signOut}> Sign Out </button>);
 
   }
   return null;
@@ -366,6 +398,7 @@ class App extends Component {
 
     this.state = {
       savedPolls: [],
+      yourPolls: [],
     };
     this.signOut = this.signOut.bind(this);
   }
@@ -378,6 +411,7 @@ class App extends Component {
       for(let poll in polls) {
         newState.push({
           id: poll,
+          user: polls[poll].user,
           title: polls[poll].title,
           options: polls[poll].options
         });
@@ -386,10 +420,34 @@ class App extends Component {
         savedPolls: newState
       });
     })
+
+    if (localStorage.getItem('user') !== null)
+    {
+      pollsRef.orderByChild('user').equalTo(localStorage.getItem('user'))
+      .on('value', (snapshot) => {
+
+      let polls = snapshot.val();
+      let yourPolls = [];
+      for(let poll in polls) {
+        yourPolls.push({
+          id: poll,
+          user: polls[poll].user,
+          title: polls[poll].title,
+          options: polls[poll].options
+        });
+      }
+      //move to one setstate
+      this.setState({
+        yourPolls: yourPolls
+      });
+    });
+
+    }
   }
 
   signOut() {
     localStorage.removeItem('user');
+    window.location.reload();
 }
 
 
@@ -404,19 +462,30 @@ class App extends Component {
         </header>
         <br/>
         <div>   
-        <div class="newPoll-container">
+        <div className="newPoll-container">
             <NewPoll />
 
               </div>
         <br/>
-        <div>             
-        <h4>Saved Polls</h4> <br/>
+        <div className="polls-container">
+        <div className="saved-polls">             
+        <h4>Open Polls</h4> <br/>
           {this.state.savedPolls.map((polls,ind) => (
             <div>  
-            <Poll index={ind+1} poll={polls}/>
+            <Poll index={ind+1} poll={polls} isUser={false}/>
             </div>
 
             ))}
+          </div>
+         <div className="user-polls">
+         <h4>Your Polls</h4> <br/> 
+         {this.state.yourPolls.map((polls,ind) => (
+           <div>  
+           <Poll index={ind+1} poll={polls} isUser={true}/>
+           </div>
+
+           ))}
+         </div>
         </div>
    
         </div>
