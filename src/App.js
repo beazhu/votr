@@ -84,7 +84,7 @@ class Poll extends Component {
           <Modal.Body>
           <form>
           {this.props.poll.options.map((option, ind) => (
-            <div> Option {ind+1}. {option.option}  <input type="radio" name="vote" 
+            <div key={option.option}> Option {ind+1}. {option.option}  <input type="radio" name="vote" 
             value={ind} 
             onChange={this.handleOptionChange}/> <br/>
             <Results isUser={this.props.isUser} option={option} />
@@ -108,29 +108,10 @@ class Poll extends Component {
 function Results (props) {
 
   if (props.isUser) {
-    return (<div> {props.option.numVotes}</div>);
+    return (<div> {props.option.numVotes} votes</div>);
   }
   return null;
 }
-
-// class Results extends Component {
-
-//   constructor(props) {
-//   super(props);
-
-//   this.state = {
-//     show: false,
-//   }
-
-//   render() {
-//     return (
-
-//       )
-//   }
-// }
-
-
-// }
 
 class NewPoll extends Component {
 
@@ -213,7 +194,7 @@ class NewPoll extends Component {
         <Modal.Body>
          Title <br/><input onChange={this.handleTitleInput} /> <br/>
          {this.state.currentPoll.options.map((options, ind) => (
-           <div>
+           <div key={options.option}>
            Option {ind+1}<br/> <input value={options.option} onChange={(e) => this.handleOptionInput(e,ind)}/>
             </div>
          ))}
@@ -282,7 +263,7 @@ class SignUp extends Component {
   render() {
     return (
       <div>
-          <button class="login-button" onClick={this.showSignUp}> Sign Up to make Polls </button><br/>
+          <button className="login-button" onClick={this.showSignUp}> Sign Up to make Polls </button><br/>
           <Modal show={this.state.showSignUp} onHide={this.closeSignUp} bsSize="lg">
             <Modal.Header closeButton>
             <Modal.Title> Sign Up </Modal.Title>
@@ -363,7 +344,7 @@ class SignIn extends Component {
   render() {
     return (
       <div>
-        <button class="login-button" onClick={this.showSignIn}> Sign In </button>
+        <button className="login-button" onClick={this.showSignIn}> Sign In </button>
         <Modal show={this.state.showSignIn} onHide={this.closeSignIn} bsSize="lg">
           <Modal.Header closeButton>
           <Modal.Title> Sign In </Modal.Title>
@@ -385,7 +366,7 @@ class SignIn extends Component {
 function SignOut(props) {
   if(localStorage.getItem('user') !== null)
   {
-    return (<button class="login-button" onClick={props.signOut}> Sign Out </button>);
+    return (<button className="login-button" onClick={props.signOut}> Sign Out </button>);
 
   }
   return null;
@@ -471,7 +452,7 @@ class App extends Component {
         <div className="saved-polls">             
         <h4>Open Polls</h4> <br/>
           {this.state.savedPolls.map((polls,ind) => (
-            <div>  
+            <div key={polls.title}>  
             <Poll index={ind+1} poll={polls} isUser={false}/>
             </div>
 
@@ -480,7 +461,7 @@ class App extends Component {
          <div className="user-polls">
          <h4>Your Polls</h4> <br/> 
          {this.state.yourPolls.map((polls,ind) => (
-           <div>  
+           <div key={polls.title}>  
            <Poll index={ind+1} poll={polls} isUser={true}/>
            </div>
 
