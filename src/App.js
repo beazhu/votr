@@ -23,7 +23,9 @@ class Poll extends Component {
     this.mouseOut = this.mouseOut.bind(this);
     this.deleteOption = this.deleteOption.bind(this);
     this.deletePoll = this.deletePoll.bind(this);
+    this.closePoll = this.closePoll.bind(this);
   }
+
 
   showVoting() {
     this.setState({showVoting: true});
@@ -35,6 +37,7 @@ class Poll extends Component {
 
   handleOptionChange(e) {
     this.setState({selectedOption: e.target.value});
+    console.log("selected",this.state.selectedOption);
     //gets the index
   }
 
@@ -71,12 +74,15 @@ class Poll extends Component {
   pollsRef.remove();
 }
 
-  deletePoll(ind) {
+  deletePoll() {
   const pollsRef = firebase.database().ref('polls').child(this.props.poll.title);
   pollsRef.remove();
   this.closeVoting();
+}
 
-
+  closePoll() {
+  const pollsRef = firebase.database().ref('polls').child(this.props.poll.title);
+  pollsRef.update({isOpen: false});
 }
 //doesnt work on your polls
   mouseOver() {
@@ -98,22 +104,18 @@ class Poll extends Component {
           <Modal.Title> {this.props.poll.title} - {this.props.poll.user}</Modal.Title>
           </Modal.Header>
           <Modal.Body>
-          <form>
-          {this.props.poll.options.map((option, ind) => (
-            <div>  {option.option}  <input type="radio" name="vote" 
-            value={ind} 
-            onChange={this.handleOptionChange}/> 
-            <DeleteOption isUser={this.props.isUser} 
+          <PollOptions 
+            poll={this.props.poll}
+            isOpen={this.props.poll.isOpen}
+            handleOptionChange={this.handleOptionChange}
+            isUser={this.props.isUser}
             optiondelete={this.deleteOption}
-            option={ind}/>
-            <br/>
-            <Results isUser={this.props.isUser} option={option} />
-            </div>
-            ))}
-          
-          </form>
+            />
           </Modal.Body>
           <Modal.Footer> 
+            <ClosePoll isUser={this.props.isUser} 
+            isOpen={this.props.poll.isOpen}
+            closePoll={this.closePoll}/>
             <DeletePoll isUser={this.props.isUser} pollDelete={this.deletePoll}/>
             <Button onClick={this.submitVote}>Submit Vote</Button>
           </Modal.Footer>
@@ -125,6 +127,56 @@ class Poll extends Component {
 
 }
 
+class PollOptions extends Component {
+  constructor(props) {
+  super(props);
+}
+
+  componentDidMount() {
+    if(!this.props.isOpen){ 
+      console.log("isopen", this.props.isOpen)
+      // document.getElementsByName('vote').style.display = "none";
+      // document.getElementById('radio').style.display = "none";
+
+    }
+
+  }  
+  render(){
+  return (
+    <form>
+    {this.props.poll.options.map((option, ind) => (
+      <div>  {option.option}  
+      <input id='radio' type="radio" name="vote" 
+      value={ind} 
+      onChange={this.props.handleOptionChange}/> 
+      <DeleteOption isUser={this.props.isUser} 
+      optiondelete={this.props.deleteOption}
+      option={ind}/>
+      <br/>
+      <Results isUser={this.props.isUser} option={option} />
+      </div>
+      ))}
+    
+    </form>
+    );
+}
+}
+
+function SelectOption (props) {
+  if (props.isOpen)
+  {
+    return(<input type="radio" value={props.ind} onChange={props.change}/>);
+  }
+  return null;
+}
+//merge with deletepoll?
+function ClosePoll (props) {
+  // console.log("open?", props.isOpen);
+  if (props.isUser && props.isOpen) {
+    return (<Button onClick={props.closePoll}> Close Poll </Button>);
+  }
+  return null;
+}
 function DeletePoll (props) {
   if (props.isUser) {
     return (<Button onClick={props.pollDelete}> Delete Poll </Button>);
@@ -155,7 +207,8 @@ class NewPoll extends Component {
 
      this.state = {
        showNewPoll : false,
-       currentPoll: {title: "", user: "", options:[{option:"", numVotes: 0},{option:"", numVotes: 0}] },
+       currentPoll: {title: "", user: "", isOpen: true,
+        options:[{option:"", numVotes: 0},{option:"", numVotes: 0}] },
 
      }
 
@@ -175,7 +228,8 @@ class NewPoll extends Component {
   closeNewPoll () {
     this.setState({
       showNewPoll: false,
-      currentPoll: {title: "", user: "", options:[{option:"", numVotes: 0},{option:"", numVotes: 0}]}
+      currentPoll: {title: "", user: "", isOpen: true,
+      options:[{option:"", numVotes: 0},{option:"", numVotes: 0}]}
     });
   }
 
@@ -204,12 +258,14 @@ class NewPoll extends Component {
       const item = {
         title: this.state.currentPoll.title,
         user: localStorage.getItem('user'),
+        isOpen: true,
         options: this.state.currentPoll.options
       }
       pollsRef.set(item);
 
       this.setState({
-        currentPoll: {title: "", user: "", options:[{option:"", numVotes: 0},{option:"", numVotes: 0}]}
+        currentPoll: {title: "", user: "", isOpen: true,
+        options:[{option:"", numVotes: 0},{option:"", numVotes: 0}]}
       });
 
 
@@ -430,6 +486,7 @@ class App extends Component {
         newState.push({
           id: poll,
           user: polls[poll].user,
+          isOpen: polls[poll].isOpen,
           title: polls[poll].title,
           options: polls[poll].options
         });
@@ -450,6 +507,7 @@ class App extends Component {
         yourPolls.push({
           id: poll,
           user: polls[poll].user,
+          isOpen: polls[poll].isOpen,
           title: polls[poll].title,
           options: polls[poll].options
         });
