@@ -38,3 +38,7 @@
 .delete-option-button {
   float: right;
 }
+
+.vote {
+  display: none;
+}

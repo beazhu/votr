@@ -12,7 +12,8 @@ class Poll extends Component {
 
     this.state = {
       showVoting: false,
-      selectedOption: -1
+      selectedOption: -1,
+      isOpen: this.props.poll.isOpen,
     }
 
     this.showVoting = this.showVoting.bind(this);
@@ -83,6 +84,8 @@ class Poll extends Component {
   closePoll() {
   const pollsRef = firebase.database().ref('polls').child(this.props.poll.title);
   pollsRef.update({isOpen: false});
+  this.setState({isOpen: false});
+  // this.forceUpdate();
 }
 //doesnt work on your polls
   mouseOver() {
@@ -106,7 +109,7 @@ class Poll extends Component {
           <Modal.Body>
           <PollOptions 
             poll={this.props.poll}
-            isOpen={this.props.poll.isOpen}
+            isOpen={this.state.isOpen}
             handleOptionChange={this.handleOptionChange}
             isUser={this.props.isUser}
             optiondelete={this.deleteOption}
@@ -130,25 +133,57 @@ class Poll extends Component {
 class PollOptions extends Component {
   constructor(props) {
   super(props);
+
+  this.hideRadio = this.hideRadio.bind(this);
+
 }
 
+hideRadio(el, display) {
+  for(let e of el){
+    e.style.display = display ? '' : 'inline';
+
+  }
+}
   componentDidMount() {
-    if(!this.props.isOpen){ 
+    if(this.props.isOpen){ 
       console.log("isopen", this.props.isOpen)
-      // document.getElementsByName('vote').style.display = "none";
-      // document.getElementById('radio').style.display = "none";
+       var hide = document.getElementsByClassName('vote');
+
+
+       this.hideRadio(hide,false);
+
 
     }
 
   }  
+
+  componentDidUpdate(prev) {
+    // var hideRadio = function(el, display) {
+    //   for(let e of el){
+    //     e.style.display = display ? '' : 'inline';
+
+    //   }
+    // };
+
+    if (this.props.isOpen !== prev.isOpen) {
+      console.log("chage");
+      var hide = document.getElementsByClassName('vote');
+
+      this.hideRadio(hide, true);
+    }
+  }
+
+
   render(){
   return (
     <form>
     {this.props.poll.options.map((option, ind) => (
       <div>  {option.option}  
-      <input id='radio' type="radio" name="vote" 
+      <span className='rad'>
+      <input  id='radio' type="radio" className="vote" 
       value={ind} 
       onChange={this.props.handleOptionChange}/> 
+      </span>
       <DeleteOption isUser={this.props.isUser} 
       optiondelete={this.props.deleteOption}
       option={ind}/>
@@ -162,16 +197,15 @@ class PollOptions extends Component {
 }
 }
 
-function SelectOption (props) {
-  if (props.isOpen)
-  {
-    return(<input type="radio" value={props.ind} onChange={props.change}/>);
-  }
-  return null;
-}
+// function SelectOption (props) {
+//   if (props.isOpen)
+//   {
+//     return(<input type="radio" value={props.ind} onChange={props.change}/>);
+//   }
+//   return null;
+// }
 //merge with deletepoll?
 function ClosePoll (props) {
-  // console.log("open?", props.isOpen);
   if (props.isUser && props.isOpen) {
     return (<Button onClick={props.closePoll}> Close Poll </Button>);
   }
