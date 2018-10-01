@@ -22,6 +22,7 @@ class Poll extends Component {
     this.mouseOver = this.mouseOver.bind(this);
     this.mouseOut = this.mouseOut.bind(this);
     this.deleteOption = this.deleteOption.bind(this);
+    this.deletePoll = this.deletePoll.bind(this);
   }
 
   showVoting() {
@@ -70,6 +71,13 @@ class Poll extends Component {
   pollsRef.remove();
 }
 
+  deletePoll(ind) {
+  const pollsRef = firebase.database().ref('polls').child(this.props.poll.title);
+  pollsRef.remove();
+  this.closeVoting();
+
+
+}
 //doesnt work on your polls
   mouseOver() {
   document.getElementById(this.props.poll.title).style.color = "gray";
@@ -106,7 +114,7 @@ class Poll extends Component {
           </form>
           </Modal.Body>
           <Modal.Footer> 
-            <DeletePoll isUser={this.props.isUser}/>
+            <DeletePoll isUser={this.props.isUser} pollDelete={this.deletePoll}/>
             <Button onClick={this.submitVote}>Submit Vote</Button>
           </Modal.Footer>
         </Modal>
@@ -119,7 +127,7 @@ class Poll extends Component {
 
 function DeletePoll (props) {
   if (props.isUser) {
-    return (<Button> Delete Poll </Button>);
+    return (<Button onClick={props.pollDelete}> Delete Poll </Button>);
   }
   return null;
 }
@@ -134,7 +142,8 @@ function Results (props) {
 //todo: add check for at least two option
 function DeleteOption (props) {
   if (props.isUser) {
-    return (<Button className="delete-option-button" onClick={() => props.optiondelete(props.option)}> Delete </Button>);
+    return (<Button className="delete-option-button" onClick={() => props.optiondelete(props.option)}>
+      Delete Option</Button>);
   }
   return null;
 }
