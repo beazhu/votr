@@ -158,12 +158,6 @@ hideRadio(el, display) {
   }  
 
   componentDidUpdate(prev) {
-    // var hideRadio = function(el, display) {
-    //   for(let e of el){
-    //     e.style.display = display ? '' : 'inline';
-
-    //   }
-    // };
 
     if (this.props.isOpen !== prev.isOpen) {
       console.log("chage");
@@ -517,13 +511,16 @@ class App extends Component {
       let polls = snapshot.val();
       let newState = [];
       for(let poll in polls) {
-        newState.push({
-          id: poll,
-          user: polls[poll].user,
-          isOpen: polls[poll].isOpen,
-          title: polls[poll].title,
-          options: polls[poll].options
-        });
+        if (polls[poll].isOpen) {
+          newState.push({
+            id: poll,
+            user: polls[poll].user,
+            isOpen: polls[poll].isOpen,
+            title: polls[poll].title,
+            options: polls[poll].options
+          });
+        }
+
       }
       this.setState({
         savedPolls: newState
