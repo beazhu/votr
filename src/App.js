@@ -106,6 +106,7 @@ class Poll extends Component {
           </form>
           </Modal.Body>
           <Modal.Footer> 
+            <DeletePoll isUser={this.props.isUser}/>
             <Button onClick={this.submitVote}>Submit Vote</Button>
           </Modal.Footer>
         </Modal>
@@ -114,21 +115,26 @@ class Poll extends Component {
     );
   }
 
+}
 
+function DeletePoll (props) {
+  if (props.isUser) {
+    return (<Button> Delete Poll </Button>);
+  }
+  return null;
 }
 
 function Results (props) {
-
   if (props.isUser) {
     return (<div> {props.option.numVotes} votes</div>);
   }
   return null;
 }
 
+//todo: add check for at least two option
 function DeleteOption (props) {
   if (props.isUser) {
-   // console.log(props.ind);
-    return (<Button onClick={() => props.optiondelete(props.option)}> Delete </Button>);
+    return (<Button className="delete-option-button" onClick={() => props.optiondelete(props.option)}> Delete </Button>);
   }
   return null;
 }

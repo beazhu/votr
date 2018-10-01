@@ -32,5 +32,9 @@
 .polls-container {
   display: grid;
   grid-template-columns: auto auto;
-  
+
+}
+
+.delete-option-button {
+  float: right;
 }
