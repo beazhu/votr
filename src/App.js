@@ -21,6 +21,7 @@ class Poll extends Component {
     this.handleOptionChange = this.handleOptionChange.bind(this);
     this.mouseOver = this.mouseOver.bind(this);
     this.mouseOut = this.mouseOut.bind(this);
+    this.deleteOption = this.deleteOption.bind(this);
   }
 
   showVoting() {
@@ -62,6 +63,13 @@ class Poll extends Component {
       
   }
 
+  deleteOption(ind) {
+  console.log("ind", ind);
+  const pollsRef = firebase.database().ref('polls').child(this.props.poll.title).child('options').child(ind);
+
+  pollsRef.remove();
+}
+
 //doesnt work on your polls
   mouseOver() {
   document.getElementById(this.props.poll.title).style.color = "gray";
@@ -84,9 +92,13 @@ class Poll extends Component {
           <Modal.Body>
           <form>
           {this.props.poll.options.map((option, ind) => (
-            <div> Option {ind+1}. {option.option}  <input type="radio" name="vote" 
+            <div>  {option.option}  <input type="radio" name="vote" 
             value={ind} 
-            onChange={this.handleOptionChange}/> <br/>
+            onChange={this.handleOptionChange}/> 
+            <DeleteOption isUser={this.props.isUser} 
+            optiondelete={this.deleteOption}
+            option={ind}/>
+            <br/>
             <Results isUser={this.props.isUser} option={option} />
             </div>
             ))}
@@ -109,6 +121,14 @@ function Results (props) {
 
   if (props.isUser) {
     return (<div> {props.option.numVotes} votes</div>);
+  }
+  return null;
+}
+
+function DeleteOption (props) {
+  if (props.isUser) {
+   // console.log(props.ind);
+    return (<Button onClick={() => props.optiondelete(props.option)}> Delete </Button>);
   }
   return null;
 }
@@ -258,6 +278,8 @@ class SignUp extends Component {
 
 
   this.closeSignUp();
+  window.location.reload();
+
 }
 
   render() {
