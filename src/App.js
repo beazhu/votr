@@ -338,7 +338,7 @@ class NewPoll extends Component {
     if (localStorage.getItem("user") !== null) {
       return (
         <div>
-          <button onClick={this.showNewPoll}> Create Poll </button>
+          <button className="login-button" onClick={this.showNewPoll}> Create Poll </button>
           <Modal
             show={this.state.showNewPoll}
             onHide={this.closeNewPoll}
@@ -577,12 +577,9 @@ class App extends Component {
   }
 
   componentDidMount() {
-
-    if (localStorage.getItem("user") === null)
-    {
+    if (localStorage.getItem("user") === null) {
       var hide = document.getElementById("user-polls");
       hide.style.display = "none";
-      // hideElements(hide, true);
     }
     var pollsRef = firebase.database().ref("polls");
     pollsRef.on("value", snapshot => {
@@ -648,7 +645,7 @@ class App extends Component {
             <NewPoll />
           </div>
           <br />
-          <div className="polls-container">
+          <div className="polls-container" id="polls-container">
             <div className="saved-polls">
               <h4>Open Polls</h4> <br />
               {this.state.savedPolls.map((polls, ind) => (
@@ -657,7 +654,7 @@ class App extends Component {
                 </div>
               ))}
             </div>
-            <div id="user-polls">
+            <div id="user-polls" className="user-polls">
               <h4>Your Polls</h4> <br />
               {this.state.yourPolls.map((polls, ind) => (
                 <div>
