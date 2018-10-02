@@ -149,6 +149,7 @@ class Poll extends Component {
             />
           </Modal.Body>
           <Modal.Footer>
+            <TotalVotes isUser={this.props.isUser} poll={this.props.poll} />
             <ClosePoll
               isUser={this.props.isUser}
               isOpen={this.props.poll.isOpen}
@@ -167,7 +168,30 @@ class Poll extends Component {
   }
 }
 
+function TotalVotes(props) {
+  var totalVotes = 0;
+  if (props.isUser) {
+    for (let op of props.poll.options) {
+      totalVotes = totalVotes + op.numVotes;
+    }
+    return (
+      <span>
+        {" "}
+        {totalVotes} votes {""}
+      </span>
+    );
+  }
+  return null;
+}
+
 class PollOptions extends Component {
+  // constructor(props) {
+  //   super(props);
+
+  //   this.state = {
+  //     totalVotes: 0,
+  //   }
+  // }
   componentDidMount() {
     if (this.props.isOpen) {
       console.log("isopen", this.props.isOpen);
@@ -338,7 +362,10 @@ class NewPoll extends Component {
     if (localStorage.getItem("user") !== null) {
       return (
         <div>
-          <button className="login-button" onClick={this.showNewPoll}> Create Poll </button>
+          <button className="login-button" onClick={this.showNewPoll}>
+            {" "}
+            Create Poll{" "}
+          </button>
           <Modal
             show={this.state.showNewPoll}
             onHide={this.closeNewPoll}
