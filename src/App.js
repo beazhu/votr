@@ -1,20 +1,18 @@
-import React, { Component } from 'react';
+import React, { Component } from "react";
 import { Modal, Button } from "react-bootstrap";
 
-import './App.css';
-import firebase from './firebase.js';
-
+import "./App.css";
+import firebase from "./firebase.js";
 
 class Poll extends Component {
-
   constructor(props) {
     super(props);
 
     this.state = {
       showVoting: false,
       selectedOption: -1,
-      isOpen: this.props.poll.isOpen,
-    }
+      isOpen: this.props.poll.isOpen
+    };
 
     this.showVoting = this.showVoting.bind(this);
     this.closeVoting = this.closeVoting.bind(this);
@@ -27,168 +25,190 @@ class Poll extends Component {
     this.closePoll = this.closePoll.bind(this);
   }
 
-
   showVoting() {
-    this.setState({showVoting: true});
+    this.setState({ showVoting: true });
   }
 
   closeVoting() {
-    this.setState({showVoting: false, selectedOption:-1});
+    this.setState({ showVoting: false, selectedOption: -1 });
   }
 
   handleOptionChange(e) {
-    this.setState({selectedOption: e.target.value});
-    console.log("selected",this.state.selectedOption);
+    this.setState({ selectedOption: e.target.value });
+    console.log("selected", this.state.selectedOption);
     //gets the index
   }
 
-  submitVote() { 
-      var title = this.props.poll.title;
+  submitVote() {
+    var title = this.props.poll.title;
 
+    if (this.state.selectedOption === -1) {
+      alert("Please select an option");
+    } else if (localStorage.getItem(title)) {
+      alert("You've already voted for this!");
+      this.closeVoting();
+    } else {
+      var selected = this.state.selectedOption;
+      var numVotes = this.props.poll.options[selected].numVotes + 1;
 
-      if (this.state.selectedOption === -1)
-      {
-        alert("Please select an option");
-      }
-      else if(localStorage.getItem(title))
-      {
-        alert("You've already voted for this!");
-        this.closeVoting();
-
-      }
-      else {
-         var selected = this.state.selectedOption;
-         var numVotes = this.props.poll.options[selected].numVotes + 1;
-
-         const pollsRef = firebase.database().ref('polls').child(title).child('options').child(selected);
-         pollsRef.update({numVotes: numVotes});
-         localStorage.setItem(title, true);
-        this.closeVoting();
-      }
-      
+      const pollsRef = firebase
+        .database()
+        .ref("polls")
+        .child(title)
+        .child("options")
+        .child(selected);
+      pollsRef.update({ numVotes: numVotes });
+      localStorage.setItem(title, true);
+      this.closeVoting();
+    }
   }
 
   deleteOption(ind) {
-  console.log("ind", ind);
-  const pollsRef = firebase.database().ref('polls').child(this.props.poll.title).child('options').child(ind);
+    console.log("ind", ind);
+    const pollsRef = firebase
+      .database()
+      .ref("polls")
+      .child(this.props.poll.title)
+      .child("options")
+      .child(ind);
 
-  pollsRef.remove();
-}
+    pollsRef.remove();
+  }
 
   deletePoll() {
-  const pollsRef = firebase.database().ref('polls').child(this.props.poll.title);
-  pollsRef.remove();
-  this.closeVoting();
-}
+    const pollsRef = firebase
+      .database()
+      .ref("polls")
+      .child(this.props.poll.title);
+    pollsRef.remove();
+    this.closeVoting();
+  }
 
   closePoll() {
-  const pollsRef = firebase.database().ref('polls').child(this.props.poll.title);
-  pollsRef.update({isOpen: false});
-  this.setState({isOpen: false});
-  // this.forceUpdate();
-}
-//doesnt work on your polls
+    const pollsRef = firebase
+      .database()
+      .ref("polls")
+      .child(this.props.poll.title);
+    pollsRef.update({ isOpen: false });
+    this.setState({ isOpen: false });
+    // this.forceUpdate();
+  }
+  //doesnt work on your polls
   mouseOver() {
-  document.getElementById(this.props.poll.title).style.color = "gray";
-}
+    document.getElementById(this.props.poll.title).style.color = "gray";
+  }
   mouseOut() {
-  document.getElementById(this.props.poll.title).style.color = "black";
-
-}
+    document.getElementById(this.props.poll.title).style.color = "black";
+  }
 
   render() {
     return (
       <div>
-        <h4 id={this.props.poll.title} onClick={this.showVoting} onMouseOver={this.mouseOver} onMouseOut={this.mouseOut}>
-        {this.props.index}. {this.props.poll.title}</h4>
-        
-        <Modal show={this.state.showVoting} onHide={this.closeVoting} bsSize="lg">
+        <h4
+          id={this.props.poll.title}
+          onClick={this.showVoting}
+          onMouseOver={this.mouseOver}
+          onMouseOut={this.mouseOut}
+        >
+          {this.props.index}. {this.props.poll.title}
+        </h4>
+
+        <Modal
+          show={this.state.showVoting}
+          onHide={this.closeVoting}
+          bsSize="lg"
+        >
           <Modal.Header closeButton>
-          <Modal.Title> {this.props.poll.title} - {this.props.poll.user}</Modal.Title>
+            <Modal.Title>
+              {" "}
+              {this.props.poll.title} - {this.props.poll.user}
+            </Modal.Title>
           </Modal.Header>
           <Modal.Body>
-          <PollOptions 
-            poll={this.props.poll}
-            isOpen={this.state.isOpen}
-            handleOptionChange={this.handleOptionChange}
-            isUser={this.props.isUser}
-            optiondelete={this.deleteOption}
+            <PollOptions
+              poll={this.props.poll}
+              isOpen={this.state.isOpen}
+              handleOptionChange={this.handleOptionChange}
+              isUser={this.props.isUser}
+              optiondelete={this.deleteOption}
             />
           </Modal.Body>
-          <Modal.Footer> 
-            <ClosePoll isUser={this.props.isUser} 
-            isOpen={this.props.poll.isOpen}
-            closePoll={this.closePoll}/>
-            <DeletePoll isUser={this.props.isUser} pollDelete={this.deletePoll}/>
+          <Modal.Footer>
+            <ClosePoll
+              isUser={this.props.isUser}
+              isOpen={this.props.poll.isOpen}
+              closePoll={this.closePoll}
+            />
+            <DeletePoll
+              isUser={this.props.isUser}
+              pollDelete={this.deletePoll}
+            />
             <Button onClick={this.submitVote}>Submit Vote</Button>
           </Modal.Footer>
         </Modal>
-
       </div>
     );
   }
-
 }
 
 class PollOptions extends Component {
   constructor(props) {
-  super(props);
+    super(props);
 
-  this.hideRadio = this.hideRadio.bind(this);
-
-}
-
-hideRadio(el, display) {
-  for(let e of el){
-    e.style.display = display ? '' : 'inline';
-
+    this.hideRadio = this.hideRadio.bind(this);
   }
-}
-  componentDidMount() {
-    if(this.props.isOpen){ 
-      console.log("isopen", this.props.isOpen)
-       var hide = document.getElementsByClassName('vote');
 
-
-       this.hideRadio(hide,false);
-
-
+  hideRadio(el, display) {
+    for (let e of el) {
+      e.style.display = display ? "" : "inline";
     }
+  }
+  componentDidMount() {
+    if (this.props.isOpen) {
+      console.log("isopen", this.props.isOpen);
+      var hide = document.getElementsByClassName("vote");
 
-  }  
+      this.hideRadio(hide, false);
+    }
+  }
 
   componentDidUpdate(prev) {
-
     if (this.props.isOpen !== prev.isOpen) {
       console.log("chage");
-      var hide = document.getElementsByClassName('vote');
+      var hide = document.getElementsByClassName("vote");
 
       this.hideRadio(hide, true);
     }
   }
 
-
-  render(){
-  return (
-    <form>
-    {this.props.poll.options.map((option, ind) => (
-      <div>  {option.option}  
-      <span className='rad'>
-      <input  id='radio' type="radio" className="vote" 
-      value={ind} 
-      onChange={this.props.handleOptionChange}/> 
-      </span>
-      <DeleteOption isUser={this.props.isUser} 
-      optiondelete={this.props.deleteOption}
-      option={ind}/>
-      <br/>
-      <Results isUser={this.props.isUser} option={option} />
-      </div>
-      ))}
-    
-    </form>
+  render() {
+    return (
+      <form>
+        {this.props.poll.options.map((option, ind) => (
+          <div>
+            {" "}
+            {option.option}
+            <span className="rad">
+              <input
+                id="radio"
+                type="radio"
+                className="vote"
+                value={ind}
+                onChange={this.props.handleOptionChange}
+              />
+            </span>
+            <DeleteOption
+              isUser={this.props.isUser}
+              optiondelete={this.props.deleteOption}
+              option={ind}
+            />
+            <br />
+            <Results isUser={this.props.isUser} option={option} />
+          </div>
+        ))}
+      </form>
     );
-}
+  }
 }
 
 // function SelectOption (props) {
@@ -199,65 +219,76 @@ hideRadio(el, display) {
 //   return null;
 // }
 //merge with deletepoll?
-function ClosePoll (props) {
+function ClosePoll(props) {
   if (props.isUser && props.isOpen) {
-    return (<Button onClick={props.closePoll}> Close Poll </Button>);
+    return <Button onClick={props.closePoll}> Close Poll </Button>;
   }
   return null;
 }
-function DeletePoll (props) {
+function DeletePoll(props) {
   if (props.isUser) {
-    return (<Button onClick={props.pollDelete}> Delete Poll </Button>);
+    return <Button onClick={props.pollDelete}> Delete Poll </Button>;
   }
   return null;
 }
 
-function Results (props) {
+function Results(props) {
   if (props.isUser) {
-    return (<div> {props.option.numVotes} votes</div>);
+    return <div> {props.option.numVotes} votes</div>;
   }
   return null;
 }
 
 //todo: add check for at least two option
-function DeleteOption (props) {
+function DeleteOption(props) {
   if (props.isUser) {
-    return (<Button className="delete-option-button" onClick={() => props.optiondelete(props.option)}>
-      Delete Option</Button>);
+    return (
+      <Button
+        className="delete-option-button"
+        onClick={() => props.optiondelete(props.option)}
+      >
+        Delete Option
+      </Button>
+    );
   }
   return null;
 }
 
 class NewPoll extends Component {
-
   constructor(props) {
-     super(props);
+    super(props);
 
-     this.state = {
-       showNewPoll : false,
-       currentPoll: {title: "", user: "", isOpen: true,
-        options:[{option:"", numVotes: 0},{option:"", numVotes: 0}] },
+    this.state = {
+      showNewPoll: false,
+      currentPoll: {
+        title: "",
+        user: "",
+        isOpen: true,
+        options: [{ option: "", numVotes: 0 }, { option: "", numVotes: 0 }]
+      }
+    };
 
-     }
-
-     this.handleTitleInput = this.handleTitleInput.bind(this);
-     this.handleOptionInput = this.handleOptionInput.bind(this);
-     this.showNewPoll = this.showNewPoll.bind(this);
-     this.closeNewPoll = this.closeNewPoll.bind(this);
-     this.addOption = this.addOption.bind(this);
-     this.savePoll = this.savePoll.bind(this);
+    this.handleTitleInput = this.handleTitleInput.bind(this);
+    this.handleOptionInput = this.handleOptionInput.bind(this);
+    this.showNewPoll = this.showNewPoll.bind(this);
+    this.closeNewPoll = this.closeNewPoll.bind(this);
+    this.addOption = this.addOption.bind(this);
+    this.savePoll = this.savePoll.bind(this);
   }
 
   showNewPoll() {
-    this.setState({showNewPoll: true});
-
+    this.setState({ showNewPoll: true });
   }
 
-  closeNewPoll () {
+  closeNewPoll() {
     this.setState({
       showNewPoll: false,
-      currentPoll: {title: "", user: "", isOpen: true,
-      options:[{option:"", numVotes: 0},{option:"", numVotes: 0}]}
+      currentPoll: {
+        title: "",
+        user: "",
+        isOpen: true,
+        options: [{ option: "", numVotes: 0 }, { option: "", numVotes: 0 }]
+      }
     });
   }
 
@@ -265,82 +296,93 @@ class NewPoll extends Component {
     console.log(this.state.currentPoll);
     var poll = this.state.currentPoll;
     poll.title = e.target.value;
-    this.setState({currentPoll: poll});
+    this.setState({ currentPoll: poll });
   }
 
-  handleOptionInput(e,index) {
+  handleOptionInput(e, index) {
     var poll = this.state.currentPoll;
     poll.options[index].option = e.target.value;
-    this.setState({currentPoll: poll});
+    this.setState({ currentPoll: poll });
   }
 
   addOption() {
     var poll = this.state.currentPoll;
-    poll.options.push({option:"", numVotes: 0});
-    this.setState({currentPoll: poll});
+    poll.options.push({ option: "", numVotes: 0 });
+    this.setState({ currentPoll: poll });
   }
 
   savePoll() {
-      console.log("ops", this.state.currentPoll.options)
-      const pollsRef = firebase.database().ref('polls').child(this.state.currentPoll.title);
-      const item = {
-        title: this.state.currentPoll.title,
-        user: localStorage.getItem('user'),
+    console.log("ops", this.state.currentPoll.options);
+    const pollsRef = firebase
+      .database()
+      .ref("polls")
+      .child(this.state.currentPoll.title);
+    const item = {
+      title: this.state.currentPoll.title,
+      user: localStorage.getItem("user"),
+      isOpen: true,
+      options: this.state.currentPoll.options
+    };
+    pollsRef.set(item);
+
+    this.setState({
+      currentPoll: {
+        title: "",
+        user: "",
         isOpen: true,
-        options: this.state.currentPoll.options
+        options: [{ option: "", numVotes: 0 }, { option: "", numVotes: 0 }]
       }
-      pollsRef.set(item);
+    });
 
-      this.setState({
-        currentPoll: {title: "", user: "", isOpen: true,
-        options:[{option:"", numVotes: 0},{option:"", numVotes: 0}]}
-      });
-
-
-      this.closeNewPoll();
-
-
+    this.closeNewPoll();
   }
   render() {
     return (
       <div>
+        <button onClick={this.showNewPoll}> Create Poll </button>
+        <Modal
+          show={this.state.showNewPoll}
+          onHide={this.closeNewPoll}
+          bsSize="lg"
+        >
+          <Modal.Header closeButton>
+            <Modal.Title> New Poll </Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            Title <br />
+            <input onChange={this.handleTitleInput} /> <br />
+            {this.state.currentPoll.options.map((options, ind) => (
+              <div>
+                Option {ind + 1}
+                <br />{" "}
+                <input
+                  value={options.option}
+                  onChange={e => this.handleOptionInput(e, ind)}
+                />
+              </div>
+            ))}
+            <br />
+            <Button onClick={this.addOption}> Add Option </Button>
+          </Modal.Body>
 
-      <button onClick={this.showNewPoll}> Create Poll </button>
-      <Modal show={this.state.showNewPoll} onHide={this.closeNewPoll} bsSize="lg">
-        <Modal.Header closeButton>
-        <Modal.Title> New Poll </Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-         Title <br/><input onChange={this.handleTitleInput} /> <br/>
-         {this.state.currentPoll.options.map((options, ind) => (
-           <div >
-           Option {ind+1}<br/> <input value={options.option} onChange={(e) => this.handleOptionInput(e,ind)}/>
-            </div>
-         ))}
-         <br/><Button onClick={this.addOption}> Add Option </Button>
-        </Modal.Body>
-
-        <Modal.Footer> 
-          <Button onClick={this.savePoll}>Save</Button>
-        </Modal.Footer>
-      </Modal>
+          <Modal.Footer>
+            <Button onClick={this.savePoll}>Save</Button>
+          </Modal.Footer>
+        </Modal>
       </div>
-
-      );
+    );
   }
 }
 
 class SignUp extends Component {
-
   constructor(props) {
     super(props);
 
     this.state = {
       showSignUp: false,
       user: "",
-      pass: "",
-
-    }
+      pass: ""
+    };
 
     this.showSignUp = this.showSignUp.bind(this);
     this.closeSignUp = this.closeSignUp.bind(this);
@@ -350,167 +392,189 @@ class SignUp extends Component {
   }
 
   showSignUp() {
-  this.setState({showSignUp: true});
-}
-  closeSignUp() {
-  this.setState({showSignUp: false});
-}
-
-  handleUserChange(e) {
-  this.setState({user: e.target.value});
-}
-  handlePassChange(e) {
-  this.setState({pass: e.target.value});
-}
-  submitSignUp() {
-  localStorage.setItem('user', this.state.user)
-  // put into database
-  var userRef = firebase.database().ref('users').child(this.state.user);
-  const newUser = {
-    user: this.state.user,
-    pass: this.state.pass
+    this.setState({ showSignUp: true });
   }
-  userRef.set(newUser);
-  this.setState({
+  closeSignUp() {
+    this.setState({ showSignUp: false });
+  }
+  handleUserChange(e) {
+    this.setState({ user: e.target.value });
+  }
+  handlePassChange(e) {
+    this.setState({ pass: e.target.value });
+  }
+  submitSignUp() {
+    localStorage.setItem("user", this.state.user);
+    // put into database
+    var userRef = firebase
+      .database()
+      .ref("users")
+      .child(this.state.user);
+    const newUser = {
+      user: this.state.user,
+      pass: this.state.pass
+    };
+    userRef.set(newUser);
+    this.setState({
       user: "",
-      pass: ""});
+      pass: ""
+    });
 
-
-  this.closeSignUp();
-  window.location.reload();
-
-}
+    this.closeSignUp();
+    window.location.reload();
+  }
 
   render() {
     return (
       <div>
-          <button className="login-button" onClick={this.showSignUp}> Sign Up to make Polls </button><br/>
-          <Modal show={this.state.showSignUp} onHide={this.closeSignUp} bsSize="lg">
-            <Modal.Header closeButton>
+        <button className="login-button" onClick={this.showSignUp}>
+          {" "}
+          Sign Up to make Polls{" "}
+        </button>
+        <br />
+        <Modal
+          show={this.state.showSignUp}
+          onHide={this.closeSignUp}
+          bsSize="lg"
+        >
+          <Modal.Header closeButton>
             <Modal.Title> Sign Up </Modal.Title>
-            </Modal.Header>
-            <Modal.Body>
-            Username<br/><input onChange={this.handleUserChange}/> <br/>
-            Password<br/><input onChange={this.handlePassChange}/>
-            </Modal.Body>
+          </Modal.Header>
+          <Modal.Body>
+            Username
+            <br />
+            <input onChange={this.handleUserChange} /> <br />
+            Password
+            <br />
+            <input onChange={this.handlePassChange} />
+          </Modal.Body>
 
-            <Modal.Footer> 
-              <Button onClick={this.submitSignUp}>Submit</Button>
-            </Modal.Footer>
-          </Modal>
+          <Modal.Footer>
+            <Button onClick={this.submitSignUp}>Submit</Button>
+          </Modal.Footer>
+        </Modal>
       </div>
-      );
-}
+    );
+  }
 }
 
 class SignIn extends Component {
-
   constructor(props) {
-  super(props);
-  this.state = {
-    showSignIn: false,
-    user: "",
-    pass: "",
+    super(props);
+    this.state = {
+      showSignIn: false,
+      user: "",
+      pass: ""
+    };
+    this.showSignIn = this.showSignIn.bind(this);
+    this.closeSignIn = this.closeSignIn.bind(this);
+    this.handleUserChange = this.handleUserChange.bind(this);
+    this.handlePassChange = this.handlePassChange.bind(this);
+    this.submitSignIn = this.submitSignIn.bind(this);
   }
-  this.showSignIn = this.showSignIn.bind(this);
-  this.closeSignIn = this.closeSignIn.bind(this);
-  this.handleUserChange = this.handleUserChange.bind(this);
-  this.handlePassChange = this.handlePassChange.bind(this);
-  this.submitSignIn = this.submitSignIn.bind(this);
-}
 
   showSignIn() {
-  this.setState({showSignIn: true});
-}
+    this.setState({ showSignIn: true });
+  }
   closeSignIn() {
-  this.setState({showSignIn: false});
-}
+    this.setState({ showSignIn: false });
+  }
   handleUserChange(e) {
-  this.setState({user: e.target.value});
-}
+    this.setState({ user: e.target.value });
+  }
   handlePassChange(e) {
-  this.setState({pass: e.target.value});
-}
+    this.setState({ pass: e.target.value });
+  }
 
   submitSignIn() {
+    var userRef = firebase.database().ref("users");
+    userRef
+      .orderByChild("user")
+      .equalTo(this.state.user)
+      .once("value", snapshot => {
+        if (snapshot.exists()) {
+          userRef
+            .orderByChild("pass")
+            .equalTo(this.state.pass)
+            .once("value", snapshot => {
+              if (snapshot.exists()) {
+                localStorage.setItem("user", this.state.user);
+                this.closeSignIn();
+                window.location.reload();
+              } else {
+                alert("Wrong user/pass combo");
+              }
+            });
+        } else {
+          alert("Wrong user/pass combo");
+        }
+      });
 
-  var userRef = firebase.database().ref('users');
-  userRef.orderByChild('user').equalTo(this.state.user)
-    .once("value", snapshot => {
-      if(snapshot.exists()) {
-        userRef.orderByChild('pass').equalTo(this.state.pass)
-        .once("value",snapshot => {
-          if (snapshot.exists()) {
-            localStorage.setItem('user', this.state.user);
-            this.closeSignIn();
-            window.location.reload();
-
-          }
-          else {
-            alert("Wrong user/pass combo");
-          }
-        })
-      }
-      else {
-        alert("Wrong user/pass combo");
-
-      }
-
-    })
-  
- 
-  console.log("signed in",localStorage.getItem('user'));
-}
-//check if signed in to not render sign in/up buttons
+    console.log("signed in", localStorage.getItem("user"));
+  }
+  //check if signed in to not render sign in/up buttons
   render() {
     return (
       <div>
-        <button className="login-button" onClick={this.showSignIn}> Sign In </button>
-        <Modal show={this.state.showSignIn} onHide={this.closeSignIn} bsSize="lg">
+        <button className="login-button" onClick={this.showSignIn}>
+          {" "}
+          Sign In{" "}
+        </button>
+        <Modal
+          show={this.state.showSignIn}
+          onHide={this.closeSignIn}
+          bsSize="lg"
+        >
           <Modal.Header closeButton>
-          <Modal.Title> Sign In </Modal.Title>
+            <Modal.Title> Sign In </Modal.Title>
           </Modal.Header>
           <Modal.Body>
-          Username<br/><input onChange={this.handleUserChange}/> <br/>
-          Password<br/><input onChange={this.handlePassChange}/>
+            Username
+            <br />
+            <input onChange={this.handleUserChange} /> <br />
+            Password
+            <br />
+            <input onChange={this.handlePassChange} />
           </Modal.Body>
 
-          <Modal.Footer> 
+          <Modal.Footer>
             <Button onClick={this.submitSignIn}>Submit</Button>
           </Modal.Footer>
         </Modal>
       </div>
-      );
-}
+    );
+  }
 }
 
 function SignOut(props) {
-  if(localStorage.getItem('user') !== null)
-  {
-    return (<button className="login-button" onClick={props.signOut}> Sign Out </button>);
-
+  if (localStorage.getItem("user") !== null) {
+    return (
+      <button className="login-button" onClick={props.signOut}>
+        {" "}
+        Sign Out{" "}
+      </button>
+    );
   }
   return null;
 }
 
 class App extends Component {
-
   constructor(props) {
     super(props);
 
     this.state = {
       savedPolls: [],
-      yourPolls: [],
+      yourPolls: []
     };
     this.signOut = this.signOut.bind(this);
   }
 
   componentDidMount() {
-    var pollsRef = firebase.database().ref('polls');
-    pollsRef.on('value', (snapshot) => {
+    var pollsRef = firebase.database().ref("polls");
+    pollsRef.on("value", snapshot => {
       let polls = snapshot.val();
       let newState = [];
-      for(let poll in polls) {
+      for (let poll in polls) {
         if (polls[poll].isOpen) {
           newState.push({
             id: poll,
@@ -520,43 +584,40 @@ class App extends Component {
             options: polls[poll].options
           });
         }
-
       }
       this.setState({
         savedPolls: newState
       });
-    })
-
-    if (localStorage.getItem('user') !== null)
-    {
-      pollsRef.orderByChild('user').equalTo(localStorage.getItem('user'))
-      .on('value', (snapshot) => {
-
-      let polls = snapshot.val();
-      let yourPolls = [];
-      for(let poll in polls) {
-        yourPolls.push({
-          id: poll,
-          user: polls[poll].user,
-          isOpen: polls[poll].isOpen,
-          title: polls[poll].title,
-          options: polls[poll].options
-        });
-      }
-      //move to one setstate
-      this.setState({
-        yourPolls: yourPolls
-      });
     });
 
+    if (localStorage.getItem("user") !== null) {
+      pollsRef
+        .orderByChild("user")
+        .equalTo(localStorage.getItem("user"))
+        .on("value", snapshot => {
+          let polls = snapshot.val();
+          let yourPolls = [];
+          for (let poll in polls) {
+            yourPolls.push({
+              id: poll,
+              user: polls[poll].user,
+              isOpen: polls[poll].isOpen,
+              title: polls[poll].title,
+              options: polls[poll].options
+            });
+          }
+          //move to one setstate
+          this.setState({
+            yourPolls: yourPolls
+          });
+        });
     }
   }
 
   signOut() {
-    localStorage.removeItem('user');
+    localStorage.removeItem("user");
     window.location.reload();
-}
-
+  }
 
   render() {
     return (
@@ -565,36 +626,32 @@ class App extends Component {
           <h1 className="App-title">Votr: for voting </h1>
           <SignUp />
           <SignIn />
-          <SignOut signOut={this.signOut}/>
+          <SignOut signOut={this.signOut} />
         </header>
-        <br/>
-        <div>   
-        <div className="newPoll-container">
+        <br />
+        <div>
+          <div className="newPoll-container">
             <NewPoll />
-
-              </div>
-        <br/>
-        <div className="polls-container">
-        <div className="saved-polls">             
-        <h4>Open Polls</h4> <br/>
-          {this.state.savedPolls.map((polls,ind) => (
-            <div>  
-            <Poll index={ind+1} poll={polls} isUser={false}/>
-            </div>
-
-            ))}
           </div>
-         <div className="user-polls">
-         <h4>Your Polls</h4> <br/> 
-         {this.state.yourPolls.map((polls,ind) => (
-           <div >  
-           <Poll index={ind+1} poll={polls} isUser={true}/>
-           </div>
-
-           ))}
-         </div>
-        </div>
-   
+          <br />
+          <div className="polls-container">
+            <div className="saved-polls">
+              <h4>Open Polls</h4> <br />
+              {this.state.savedPolls.map((polls, ind) => (
+                <div>
+                  <Poll index={ind + 1} poll={polls} isUser={false} />
+                </div>
+              ))}
+            </div>
+            <div className="user-polls">
+              <h4>Your Polls</h4> <br />
+              {this.state.yourPolls.map((polls, ind) => (
+                <div>
+                  <Poll index={ind + 1} poll={polls} isUser={true} />
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     );
