@@ -4,6 +4,12 @@ import { Modal, Button } from "react-bootstrap";
 import "./App.css";
 import firebase from "./firebase.js";
 
+function hideElements(el, display) {
+  for (let e of el) {
+    e.style.display = display ? "" : "inline";
+  }
+}
+
 class Poll extends Component {
   constructor(props) {
     super(props);
@@ -162,23 +168,11 @@ class Poll extends Component {
 }
 
 class PollOptions extends Component {
-  constructor(props) {
-    super(props);
-
-    this.hideRadio = this.hideRadio.bind(this);
-  }
-
-  hideRadio(el, display) {
-    for (let e of el) {
-      e.style.display = display ? "" : "inline";
-    }
-  }
   componentDidMount() {
     if (this.props.isOpen) {
       console.log("isopen", this.props.isOpen);
       var hide = document.getElementsByClassName("vote");
-
-      this.hideRadio(hide, false);
+      hideElements(hide, false);
     }
   }
 
@@ -186,8 +180,7 @@ class PollOptions extends Component {
     if (this.props.isOpen !== prev.isOpen) {
       console.log("chage");
       var hide = document.getElementsByClassName("vote");
-
-      this.hideRadio(hide, !this.props.isOpen);
+      hideElements(hide, !this.props.isOpen);
     }
   }
 
@@ -197,16 +190,13 @@ class PollOptions extends Component {
         {this.props.poll.options.map((option, ind) => (
           <div>
             {" "}
-            {option.option}
-            <span className="rad">
-              <input
-                id="radio"
-                type="radio"
-                className="vote"
-                value={ind}
-                onChange={this.props.handleOptionChange}
-              />
-            </span>
+            {option.option}{" "}
+            <input
+              type="radio"
+              className="vote"
+              value={ind}
+              onChange={this.props.handleOptionChange}
+            />
             <DeleteOption
               isUser={this.props.isUser}
               optiondelete={this.props.deleteOption}
@@ -224,12 +214,9 @@ class PollOptions extends Component {
 //merge with deletepoll?
 function ClosePoll(props) {
   if (props.isUser) {
-    if(props.isOpen)
-    {
+    if (props.isOpen) {
       return <Button onClick={props.closePoll}> Close Poll </Button>;
-    }
-    else 
-    {
+    } else {
       return <Button onClick={props.openPoll}> Open Poll </Button>;
     }
   }
@@ -348,40 +335,43 @@ class NewPoll extends Component {
     this.closeNewPoll();
   }
   render() {
-    return (
-      <div>
-        <button onClick={this.showNewPoll}> Create Poll </button>
-        <Modal
-          show={this.state.showNewPoll}
-          onHide={this.closeNewPoll}
-          bsSize="lg"
-        >
-          <Modal.Header closeButton>
-            <Modal.Title> New Poll </Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            Title <br />
-            <input onChange={this.handleTitleInput} /> <br />
-            {this.state.currentPoll.options.map((options, ind) => (
-              <div>
-                Option {ind + 1}
-                <br />{" "}
-                <input
-                  value={options.option}
-                  onChange={e => this.handleOptionInput(e, ind)}
-                />
-              </div>
-            ))}
-            <br />
-            <Button onClick={this.addOption}> Add Option </Button>
-          </Modal.Body>
+    if (localStorage.getItem("user") !== null) {
+      return (
+        <div>
+          <button onClick={this.showNewPoll}> Create Poll </button>
+          <Modal
+            show={this.state.showNewPoll}
+            onHide={this.closeNewPoll}
+            bsSize="lg"
+          >
+            <Modal.Header closeButton>
+              <Modal.Title> New Poll </Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+              Title <br />
+              <input onChange={this.handleTitleInput} /> <br />
+              {this.state.currentPoll.options.map((options, ind) => (
+                <div>
+                  Option {ind + 1}
+                  <br />{" "}
+                  <input
+                    value={options.option}
+                    onChange={e => this.handleOptionInput(e, ind)}
+                  />
+                </div>
+              ))}
+              <br />
+              <Button onClick={this.addOption}> Add Option </Button>
+            </Modal.Body>
 
-          <Modal.Footer>
-            <Button onClick={this.savePoll}>Save</Button>
-          </Modal.Footer>
-        </Modal>
-      </div>
-    );
+            <Modal.Footer>
+              <Button onClick={this.savePoll}>Save</Button>
+            </Modal.Footer>
+          </Modal>
+        </div>
+      );
+    }
+    return null;
   }
 }
 
@@ -430,42 +420,45 @@ class SignUp extends Component {
       user: "",
       pass: ""
     });
+    window.location.reload();
 
     this.closeSignUp();
-    window.location.reload();
   }
 
   render() {
-    return (
-      <div>
-        <button className="login-button" onClick={this.showSignUp}>
-          {" "}
-          Sign Up to make Polls{" "}
-        </button>
-        <br />
-        <Modal
-          show={this.state.showSignUp}
-          onHide={this.closeSignUp}
-          bsSize="lg"
-        >
-          <Modal.Header closeButton>
-            <Modal.Title> Sign Up </Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            Username
-            <br />
-            <input onChange={this.handleUserChange} /> <br />
-            Password
-            <br />
-            <input onChange={this.handlePassChange} />
-          </Modal.Body>
+    if (localStorage.getItem("user") === null) {
+      return (
+        <div>
+          <button className="login-button" onClick={this.showSignUp}>
+            {" "}
+            Sign Up to make Polls{" "}
+          </button>
+          <br />
+          <Modal
+            show={this.state.showSignUp}
+            onHide={this.closeSignUp}
+            bsSize="lg"
+          >
+            <Modal.Header closeButton>
+              <Modal.Title> Sign Up </Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+              Username
+              <br />
+              <input onChange={this.handleUserChange} /> <br />
+              Password
+              <br />
+              <input onChange={this.handlePassChange} />
+            </Modal.Body>
 
-          <Modal.Footer>
-            <Button onClick={this.submitSignUp}>Submit</Button>
-          </Modal.Footer>
-        </Modal>
-      </div>
-    );
+            <Modal.Footer>
+              <Button onClick={this.submitSignUp}>Submit</Button>
+            </Modal.Footer>
+          </Modal>
+        </div>
+      );
+    }
+    return null;
   }
 }
 
@@ -510,8 +503,8 @@ class SignIn extends Component {
             .once("value", snapshot => {
               if (snapshot.exists()) {
                 localStorage.setItem("user", this.state.user);
-                this.closeSignIn();
                 window.location.reload();
+                this.closeSignIn();
               } else {
                 alert("Wrong user/pass combo");
               }
@@ -525,35 +518,38 @@ class SignIn extends Component {
   }
   //check if signed in to not render sign in/up buttons
   render() {
-    return (
-      <div>
-        <button className="login-button" onClick={this.showSignIn}>
-          {" "}
-          Sign In{" "}
-        </button>
-        <Modal
-          show={this.state.showSignIn}
-          onHide={this.closeSignIn}
-          bsSize="lg"
-        >
-          <Modal.Header closeButton>
-            <Modal.Title> Sign In </Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            Username
-            <br />
-            <input onChange={this.handleUserChange} /> <br />
-            Password
-            <br />
-            <input onChange={this.handlePassChange} />
-          </Modal.Body>
+    if (localStorage.getItem("user") === null) {
+      return (
+        <div>
+          <button className="login-button" onClick={this.showSignIn}>
+            {" "}
+            Sign In{" "}
+          </button>
+          <Modal
+            show={this.state.showSignIn}
+            onHide={this.closeSignIn}
+            bsSize="lg"
+          >
+            <Modal.Header closeButton>
+              <Modal.Title> Sign In </Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+              Username
+              <br />
+              <input onChange={this.handleUserChange} /> <br />
+              Password
+              <br />
+              <input onChange={this.handlePassChange} />
+            </Modal.Body>
 
-          <Modal.Footer>
-            <Button onClick={this.submitSignIn}>Submit</Button>
-          </Modal.Footer>
-        </Modal>
-      </div>
-    );
+            <Modal.Footer>
+              <Button onClick={this.submitSignIn}>Submit</Button>
+            </Modal.Footer>
+          </Modal>
+        </div>
+      );
+    }
+    return null;
   }
 }
 
@@ -581,6 +577,13 @@ class App extends Component {
   }
 
   componentDidMount() {
+
+    if (localStorage.getItem("user") === null)
+    {
+      var hide = document.getElementById("user-polls");
+      hide.style.display = "none";
+      // hideElements(hide, true);
+    }
     var pollsRef = firebase.database().ref("polls");
     pollsRef.on("value", snapshot => {
       let polls = snapshot.val();
@@ -654,7 +657,7 @@ class App extends Component {
                 </div>
               ))}
             </div>
-            <div className="user-polls">
+            <div id="user-polls">
               <h4>Your Polls</h4> <br />
               {this.state.yourPolls.map((polls, ind) => (
                 <div>
