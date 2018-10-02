@@ -23,6 +23,7 @@ class Poll extends Component {
     this.deleteOption = this.deleteOption.bind(this);
     this.deletePoll = this.deletePoll.bind(this);
     this.closePoll = this.closePoll.bind(this);
+    this.openPoll = this.openPoll.bind(this);
   }
 
   showVoting() {
@@ -91,7 +92,15 @@ class Poll extends Component {
       .child(this.props.poll.title);
     pollsRef.update({ isOpen: false });
     this.setState({ isOpen: false });
-    // this.forceUpdate();
+  }
+
+  openPoll() {
+    const pollsRef = firebase
+      .database()
+      .ref("polls")
+      .child(this.props.poll.title);
+    pollsRef.update({ isOpen: true });
+    this.setState({ isOpen: true });
   }
   //doesnt work on your polls
   mouseOver() {
@@ -138,6 +147,7 @@ class Poll extends Component {
               isUser={this.props.isUser}
               isOpen={this.props.poll.isOpen}
               closePoll={this.closePoll}
+              openPoll={this.openPoll}
             />
             <DeletePoll
               isUser={this.props.isUser}
@@ -177,7 +187,7 @@ class PollOptions extends Component {
       console.log("chage");
       var hide = document.getElementsByClassName("vote");
 
-      this.hideRadio(hide, true);
+      this.hideRadio(hide, !this.props.isOpen);
     }
   }
 
@@ -211,18 +221,19 @@ class PollOptions extends Component {
   }
 }
 
-// function SelectOption (props) {
-//   if (props.isOpen)
-//   {
-//     return(<input type="radio" value={props.ind} onChange={props.change}/>);
-//   }
-//   return null;
-// }
 //merge with deletepoll?
 function ClosePoll(props) {
-  if (props.isUser && props.isOpen) {
-    return <Button onClick={props.closePoll}> Close Poll </Button>;
+  if (props.isUser) {
+    if(props.isOpen)
+    {
+      return <Button onClick={props.closePoll}> Close Poll </Button>;
+    }
+    else 
+    {
+      return <Button onClick={props.openPoll}> Open Poll </Button>;
+    }
   }
+
   return null;
 }
 function DeletePoll(props) {
